@@ -1,0 +1,152 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define ROWS 20
+#define COLS 60
+
+char screen[ROWS][COLS];
+
+// Initialize screen
+void clearScreen() {
+    for(int i=0;i<ROWS;i++) {
+        for(int j=0;j<COLS;j++) {
+            screen[i][j] = '.';
+        }
+    }
+}
+
+// Display screen
+void showScreen() {
+    for(int i=0;i<ROWS;i++) {
+        for(int j=0;j<COLS;j++) {
+            printf("%c ", screen[i][j]);
+        }
+        printf("\n");
+    }
+}
+
+// Draw rectangle
+void rectangleShape(int x,int y,int width,int height) {
+
+    for(int i=x;i<x+width;i++) {
+        if(y>=0 && y<ROWS && i>=0 && i<COLS)
+            screen[y][i] = '#';
+
+        if(y+height-1>=0 && y+height-1<ROWS && i>=0 && i<COLS)
+            screen[y+height-1][i] = '#';
+    }
+
+    for(int j=y;j<y+height;j++) {
+        if(j>=0 && j<ROWS && x>=0 && x<COLS)
+            screen[j][x] = '#';
+
+        if(j>=0 && j<ROWS && x+width-1>=0 && x+width-1<COLS)
+            screen[j][x+width-1] = '#';
+    }
+}
+
+// Draw horizontal line
+void lineShape(int x1,int x2,int y) {
+
+    for(int i=x1;i<=x2;i++) {
+        if(i>=0 && i<COLS && y>=0 && y<ROWS)
+            screen[y][i] = '*';
+    }
+}
+
+// Draw filled circle
+void circleShape(int cx,int cy,int r) {
+
+    for(int y=-r;y<=r;y++) {
+        for(int x=-r;x<=r;x++) {
+
+            if((x*x)+(y*y)<=r*r) {
+
+                int px = cx + x;
+                int py = cy + y;
+
+                if(px>=0 && px<COLS && py>=0 && py<ROWS)
+                    screen[py][px] = '@';
+            }
+        }
+    }
+}
+
+// Draw triangle
+void triangleShape(int x,int y,int size) {
+
+    for(int i=0;i<size;i++) {
+
+        for(int j=0;j<=i;j++) {
+
+            int px = x + j;
+            int py = y + i;
+
+            if(px>=0 && px<COLS && py>=0 && py<ROWS)
+                screen[py][px] = '+';
+        }
+    }
+}
+
+int main() {
+
+    int choice;
+
+    clearScreen();
+
+    while(1) {
+
+        printf("\n===== 2D GRAPHICS EDITOR =====\n");
+        printf("1. Draw Rectangle\n");
+        printf("2. Draw Line\n");
+        printf("3. Draw Circle\n");
+        printf("4. Draw Triangle\n");
+        printf("5. Display Canvas\n");
+        printf("6. Clear Canvas\n");
+        printf("7. Exit\n");
+
+        printf("Enter Choice: ");
+        scanf("%d",&choice);
+
+        switch(choice) {
+
+            case 1:
+                rectangleShape(5,3,15,6);
+                printf("Rectangle Drawn\n");
+                break;
+
+            case 2:
+                lineShape(2,25,10);
+                printf("Line Drawn\n");
+                break;
+
+            case 3:
+                circleShape(40,10,4);
+                printf("Circle Drawn\n");
+                break;
+
+            case 4:
+                triangleShape(30,3,6);
+                printf("Triangle Drawn\n");
+                break;
+
+            case 5:
+                showScreen();
+                break;
+
+            case 6:
+                clearScreen();
+                printf("Canvas Cleared\n");
+                break;
+
+            case 7:
+                printf("Program Ended\n");
+                exit(0);
+
+            default:
+                printf("Invalid Choice\n");
+        }
+    }
+
+    return 0;
+}
