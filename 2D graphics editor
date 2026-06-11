@@ -1,152 +1,414 @@
-#include <stdio.h>
-#include <stdlib.h>
+#include <iostream>
+#include <vector>
+#include <cmath>
+#include <algorithm>
 
-#define ROWS 20
-#define COLS 60
+using namespace std;
 
-char screen[ROWS][COLS];
+const int ROWS = 30;
+const int COLS = 60;
 
-// Initialize screen
-void clearScreen() {
-    for(int i=0;i<ROWS;i++) {
-        for(int j=0;j<COLS;j++) {
-            screen[i][j] = '.';
+char canvas[ROWS][COLS];
+
+struct Shape
+{
+    int id;
+    string type;
+
+    int x1, y1;
+    int x2, y2;
+    int x3, y3;
+
+    int width, height;
+    int radius;
+};
+
+vector<Shape> shapes;
+
+//--------------------------------------------------
+
+void clearCanvas()
+{
+    for(int i=0;i<ROWS;i++)
+    {
+        for(int j=0;j<COLS;j++)
+        {
+            canvas[i][j]='.';
         }
     }
 }
 
-// Display screen
-void showScreen() {
-    for(int i=0;i<ROWS;i++) {
-        for(int j=0;j<COLS;j++) {
-            printf("%c ", screen[i][j]);
+//--------------------------------------------------
+
+void displayCanvas()
+{
+    for(int i=0;i<ROWS;i++)
+    {
+        for(int j=0;j<COLS;j++)
+        {
+            cout << canvas[i][j];
         }
-        printf("\n");
+        cout << endl;
     }
 }
 
-// Draw rectangle
-void rectangleShape(int x,int y,int width,int height) {
+//--------------------------------------------------
 
-    for(int i=x;i<x+width;i++) {
+void drawLine(int x1,int y1,int x2,int y2)
+{
+    int dx = x2 - x1;
+    int dy = y2 - y1;
+
+    int steps = max(abs(dx), abs(dy));
+
+    if(steps == 0)
+    {
+        if(y1>=0 && y1<ROWS && x1>=0 && x1<COLS)
+            canvas[y1][x1] = '*';
+        return;
+    }
+
+    float x = x1;
+    float y = y1;
+
+    float xInc = (float)dx / steps;
+    float yInc = (float)dy / steps;
+
+    for(int i=0;i<=steps;i++)
+    {
+        int xi = (int)x;
+        int yi = (int)y;
+
+        if(yi>=0 && yi<ROWS && xi>=0 && xi<COLS)
+            canvas[yi][xi] = '*';
+
+        x += xInc;
+        y += yInc;
+    }
+}
+
+//--------------------------------------------------
+
+void drawRectangle(int x,int y,int width,int height)
+{
+    for(int i=x;i<x+width;i++)
+    {
         if(y>=0 && y<ROWS && i>=0 && i<COLS)
-            screen[y][i] = '#';
+            canvas[y][i]='*';
 
         if(y+height-1>=0 && y+height-1<ROWS && i>=0 && i<COLS)
-            screen[y+height-1][i] = '#';
+            canvas[y+height-1][i]='*';
     }
 
-    for(int j=y;j<y+height;j++) {
-        if(j>=0 && j<ROWS && x>=0 && x<COLS)
-            screen[j][x] = '#';
+    for(int i=y;i<y+height;i++)
+    {
+        if(i>=0 && i<ROWS && x>=0 && x<COLS)
+            canvas[i][x]='*';
 
-        if(j>=0 && j<ROWS && x+width-1>=0 && x+width-1<COLS)
-            screen[j][x+width-1] = '#';
-    }
-}
-
-// Draw horizontal line
-void lineShape(int x1,int x2,int y) {
-
-    for(int i=x1;i<=x2;i++) {
-        if(i>=0 && i<COLS && y>=0 && y<ROWS)
-            screen[y][i] = '*';
+        if(i>=0 && i<ROWS && x+width-1>=0 && x+width-1<COLS)
+            canvas[i][x+width-1]='*';
     }
 }
 
-// Draw filled circle
-void circleShape(int cx,int cy,int r) {
+//--------------------------------------------------
 
-    for(int y=-r;y<=r;y++) {
-        for(int x=-r;x<=r;x++) {
+void drawCircle(int cx,int cy,int r)
+{
+    for(int y=0;y<ROWS;y++)
+    {
+        for(int x=0;x<COLS;x++)
+        {
+            int dist =
+                (x-cx)*(x-cx) +
+                (y-cy)*(y-cy);
 
-            if((x*x)+(y*y)<=r*r) {
-
-                int px = cx + x;
-                int py = cy + y;
-
-                if(px>=0 && px<COLS && py>=0 && py<ROWS)
-                    screen[py][px] = '@';
+            if(abs(dist - r*r) <= r)
+            {
+                canvas[y][x]='*';
             }
         }
     }
 }
 
-// Draw triangle
-void triangleShape(int x,int y,int size) {
+//--------------------------------------------------
 
-    for(int i=0;i<size;i++) {
+void drawTriangle(
+    int x1,int y1,
+    int x2,int y2,
+    int x3,int y3)
+{
+    drawLine(x1,y1,x2,y2);
+    drawLine(x2,y2,x3,y3);
+    drawLine(x3,y3,x1,y1);
+}
 
-        for(int j=0;j<=i;j++) {
+//--------------------------------------------------
 
-            int px = x + j;
-            int py = y + i;
+void redrawAll()
+{
+    clearCanvas();
 
-            if(px>=0 && px<COLS && py>=0 && py<ROWS)
-                screen[py][px] = '+';
+    for(auto s : shapes)
+    {
+        if(s.type == "rectangle")
+        {
+            drawRectangle(
+                s.x1,
+                s.y1,
+                s.width,
+                s.height
+            );
+        }
+
+        else if(s.type == "circle")
+        {
+            drawCircle(
+                s.x1,
+                s.y1,
+                s.radius
+            );
+        }
+
+        else if(s.type == "line")
+        {
+            drawLine(
+                s.x1,
+                s.y1,
+                s.x2,
+                s.y2
+            );
+        }
+
+        else if(s.type == "triangle")
+        {
+            drawTriangle(
+                s.x1,s.y1,
+                s.x2,s.y2,
+                s.x3,s.y3
+            );
         }
     }
 }
 
-int main() {
+//--------------------------------------------------
+
+void addRectangle()
+{
+    Shape s;
+
+    s.id = shapes.size() + 1;
+    s.type = "rectangle";
+
+    cout << "Enter x y width height: ";
+    cin >> s.x1 >> s.y1 >> s.width >> s.height;
+
+    shapes.push_back(s);
+    redrawAll();
+}
+
+//--------------------------------------------------
+
+void addCircle()
+{
+    Shape s;
+
+    s.id = shapes.size() + 1;
+    s.type = "circle";
+
+    cout << "Enter centerX centerY radius: ";
+    cin >> s.x1 >> s.y1 >> s.radius;
+
+    shapes.push_back(s);
+    redrawAll();
+}
+
+//--------------------------------------------------
+
+void addLine()
+{
+    Shape s;
+
+    s.id = shapes.size() + 1;
+    s.type = "line";
+
+    cout << "Enter x1 y1 x2 y2: ";
+    cin >> s.x1 >> s.y1 >> s.x2 >> s.y2;
+
+    shapes.push_back(s);
+    redrawAll();
+}
+
+//--------------------------------------------------
+
+void addTriangle()
+{
+    Shape s;
+
+    s.id = shapes.size() + 1;
+    s.type = "triangle";
+
+    cout << "Enter x1 y1 x2 y2 x3 y3: ";
+    cin >> s.x1 >> s.y1
+        >> s.x2 >> s.y2
+        >> s.x3 >> s.y3;
+
+    shapes.push_back(s);
+    redrawAll();
+}
+
+//--------------------------------------------------
+
+void listShapes()
+{
+    cout << "\nShapes:\n";
+
+    for(auto s : shapes)
+    {
+        cout << "ID: "
+             << s.id
+             << " Type: "
+             << s.type
+             << endl;
+    }
+}
+
+//--------------------------------------------------
+
+void deleteShape()
+{
+    int id;
+
+    cout << "Enter Shape ID to delete: ";
+    cin >> id;
+
+    for(int i=0;i<shapes.size();i++)
+    {
+        if(shapes[i].id == id)
+        {
+            shapes.erase(shapes.begin()+i);
+            break;
+        }
+    }
+
+    redrawAll();
+}
+
+//--------------------------------------------------
+
+void modifyShape()
+{
+    int id;
+
+    cout << "Enter Shape ID to modify: ";
+    cin >> id;
+
+    for(auto &s : shapes)
+    {
+        if(s.id == id)
+        {
+            if(s.type == "rectangle")
+            {
+                cout << "Enter x y width height: ";
+                cin >> s.x1 >> s.y1
+                    >> s.width >> s.height;
+            }
+
+            else if(s.type == "circle")
+            {
+                cout << "Enter centerX centerY radius: ";
+                cin >> s.x1 >> s.y1
+                    >> s.radius;
+            }
+
+            else if(s.type == "line")
+            {
+                cout << "Enter x1 y1 x2 y2: ";
+                cin >> s.x1 >> s.y1
+                    >> s.x2 >> s.y2;
+            }
+
+            else if(s.type == "triangle")
+            {
+                cout << "Enter x1 y1 x2 y2 x3 y3: ";
+                cin >> s.x1 >> s.y1
+                    >> s.x2 >> s.y2
+                    >> s.x3 >> s.y3;
+            }
+
+            break;
+        }
+    }
+
+    redrawAll();
+}
+
+//--------------------------------------------------
+
+int main()
+{
+    clearCanvas();
 
     int choice;
 
-    clearScreen();
+    do
+    {
+        cout << "\n===== 2D GRAPHICS EDITOR =====\n";
+        cout << "1. Add Rectangle\n";
+        cout << "2. Add Circle\n";
+        cout << "3. Add Line\n";
+        cout << "4. Add Triangle\n";
+        cout << "5. Display Canvas\n";
+        cout << "6. List Shapes\n";
+        cout << "7. Delete Shape\n";
+        cout << "8. Modify Shape\n";
+        cout << "9. Exit\n";
 
-    while(1) {
+        cout << "Enter choice: ";
+        cin >> choice;
 
-        printf("\n===== 2D GRAPHICS EDITOR =====\n");
-        printf("1. Draw Rectangle\n");
-        printf("2. Draw Line\n");
-        printf("3. Draw Circle\n");
-        printf("4. Draw Triangle\n");
-        printf("5. Display Canvas\n");
-        printf("6. Clear Canvas\n");
-        printf("7. Exit\n");
-
-        printf("Enter Choice: ");
-        scanf("%d",&choice);
-
-        switch(choice) {
-
+        switch(choice)
+        {
             case 1:
-                rectangleShape(5,3,15,6);
-                printf("Rectangle Drawn\n");
+                addRectangle();
                 break;
 
             case 2:
-                lineShape(2,25,10);
-                printf("Line Drawn\n");
+                addCircle();
                 break;
 
             case 3:
-                circleShape(40,10,4);
-                printf("Circle Drawn\n");
+                addLine();
                 break;
 
             case 4:
-                triangleShape(30,3,6);
-                printf("Triangle Drawn\n");
+                addTriangle();
                 break;
 
             case 5:
-                showScreen();
+                displayCanvas();
                 break;
 
             case 6:
-                clearScreen();
-                printf("Canvas Cleared\n");
+                listShapes();
                 break;
 
             case 7:
-                printf("Program Ended\n");
-                exit(0);
+                deleteShape();
+                break;
+
+            case 8:
+                modifyShape();
+                break;
+
+            case 9:
+                cout << "Exiting...\n";
+                break;
 
             default:
-                printf("Invalid Choice\n");
+                cout << "Invalid Choice\n";
         }
-    }
+
+    } while(choice != 9);
 
     return 0;
 }
