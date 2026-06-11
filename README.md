@@ -1,29 +1,35 @@
-# 2d-graphics-editor-c
-2D Graphics Editor in C
+# 2D Graphics Editor
 
-This project is a simple 2D Graphics Editor developed using the C programming language. The program creates a text-based drawing canvas where users can draw basic geometric shapes such as rectangles, lines, circles, and triangles.
+## Description
+A console-based 2D Graphics Editor implemented in C++.
 
-Features
+## Features
 
 - Draw Rectangle
-- Draw Line
 - Draw Circle
+- Draw Line
 - Draw Triangle
-- Clear Canvas
-- Display Updated Canvas
+- Add Shapes
+- Delete Shapes
+- Modify Shapes
+- Display Canvas
 
-Concepts Used
+## Data Structure
 
-- Arrays
-- Functions
-- Loops
-- Conditional Statements
-- ASCII Graphics
+A 2D character array is used as the drawing canvas.
 
-Description
+```cpp
+char canvas[30][60];
+```
 
-The project simulates a mini graphics editor using characters on the console screen. Different symbols are used to represent shapes, and the canvas is updated dynamically based on user choices.
+## Compilation
 
-Language Used
+```bash
+g++ main.cpp -o editor
+./editor
+```
 
-C Programming Language
+## Author
+
+Your Name Dinesh Karthik s 
+class CSIT A sec
